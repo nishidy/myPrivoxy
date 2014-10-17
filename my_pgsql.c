@@ -21,16 +21,16 @@ extern int bag_of_words;
 void reg_postgresql(char* src_ip, char* src_mac, char* url, char* words, int size)
 {
 
-    PGconn *conn;
-    PGresult *res;
+	PGconn *conn;
+	PGresult *res;
 
-    conn=get_pg_conn();
+	conn=get_pg_conn();
 	if(conn==NULL){
-       log_error(LOG_LEVEL_ERROR,"Failed to get PGconn.");
+	   log_error(LOG_LEVEL_ERROR,"Failed to get PGconn.");
 	   return;
 	}
 
-    char* words_hstore = (char*)calloc(TEXTBUF,sizeof(char));
+	char* words_hstore = (char*)calloc(TEXTBUF,sizeof(char));
 	if(words_hstore==NULL){
 		log_error(LOG_LEVEL_ERROR,"Calloc failed ");
 		return;
@@ -49,46 +49,46 @@ void reg_postgresql(char* src_ip, char* src_mac, char* url, char* words, int siz
 					src_ip,src_mac,url,words,size);
 	}
 
-    res=PQexec(conn, sql);
+	res=PQexec(conn, sql);
 	if(PQresultStatus(res) != PGRES_COMMAND_OK)
-    	log_error(LOG_LEVEL_ERROR,"INSERT failed -> %s",PQerrorMessage(conn));
+		log_error(LOG_LEVEL_ERROR,"INSERT failed -> %s",PQerrorMessage(conn));
 
-    free(sql);
+	free(sql);
 }
 
 PGconn* get_pg_conn()
 {
 
-    PGconn *conn=NULL;
-    PGresult *res;
-    int res_count, flag=0, row;
+	PGconn *conn=NULL;
+	PGresult *res;
+	int res_count, flag=0, row;
 	char comm[SBUF];
 
 	for(;;){
 
 		sprintf(comm,"host=localhost port=5432 user=%s password=%s dbname=myprivoxy",db_user,db_pass);
 
-	    conn = PQconnectdb(comm);
-	    if(PQstatus(conn) == CONNECTION_OK){
+		conn = PQconnectdb(comm);
+		if(PQstatus(conn) == CONNECTION_OK){
 
 			if(global_pg_prepared==1) return conn;
 
-		    res=PQexec(conn, "SELECT tablename from pg_tables");
+			res=PQexec(conn, "SELECT tablename from pg_tables");
 			if(PQresultStatus(res) != PGRES_TUPLES_OK){
-   	    		log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_tables -> %s",
+   				log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_tables -> %s",
 						  PQerrorMessage(conn));
 				return NULL;
 			}
 
-		    res_count=PQntuples(res);
+			res_count=PQntuples(res);
 
-		    for(row=0;row<res_count;++row){
-		        if(strcmp(PQgetvalue(res,row,0),"http_access_data")==0){
-   	    			log_error(LOG_LEVEL_INFO,"Found http_access_data table.");
+			for(row=0;row<res_count;++row){
+				if(strcmp(PQgetvalue(res,row,0),"http_access_data")==0){
+   					log_error(LOG_LEVEL_INFO,"Found http_access_data table.");
 					flag=1;
 					break;
-		        }
-		    }
+				}
+			}
 
 			PQclear(res);
 
@@ -101,40 +101,40 @@ PGconn* get_pg_conn()
 
 			sprintf(comm,"host=localhost port=5432 user=%s password=%s",db_user,db_pass);
 
-		    conn = PQconnectdb(comm);
-		    if(PQstatus(conn) != CONNECTION_OK){
-	       		log_error(LOG_LEVEL_ERROR,"Failed to connect to server -> %s",PQerrorMessage(conn));
+			conn = PQconnectdb(comm);
+			if(PQstatus(conn) != CONNECTION_OK){
+		   		log_error(LOG_LEVEL_ERROR,"Failed to connect to server -> %s",PQerrorMessage(conn));
 				return NULL;
 			}
 
-		    res=PQexec(conn, "SELECT datname from pg_database");
+			res=PQexec(conn, "SELECT datname from pg_database");
 			if(PQresultStatus(res) != PGRES_TUPLES_OK){
-	       		log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_database -> %s",PQerrorMessage(conn));
+		   		log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_database -> %s",PQerrorMessage(conn));
 				return NULL;
 			}
 
-		    res_count=PQntuples(res);
+			res_count=PQntuples(res);
 
-		    for(row=0;row<res_count;++row){
-		        if(strcmp(PQgetvalue(res,row,0),"myprivoxy")==0){
-	       			log_error(LOG_LEVEL_INFO,"Found myprivoxy database.");
+			for(row=0;row<res_count;++row){
+				if(strcmp(PQgetvalue(res,row,0),"myprivoxy")==0){
+		   			log_error(LOG_LEVEL_INFO,"Found myprivoxy database.");
 					flag=1;
 					break;
-		        }
-		    }
+				}
+			}
 
 
 			if(flag==0){
 				if(create_db_pg()==0){
-		       		log_error(LOG_LEVEL_ERROR,"Failed to create database.");
+			   		log_error(LOG_LEVEL_ERROR,"Failed to create database.");
 					return NULL;
 				}
-	       		log_error(LOG_LEVEL_INFO,"Created myprivoxy database.");
+		   		log_error(LOG_LEVEL_INFO,"Created myprivoxy database.");
 			}
 		}
 
 		if(create_table_pg()==0){
-       		log_error(LOG_LEVEL_ERROR,"Failed to create table.");
+	   		log_error(LOG_LEVEL_ERROR,"Failed to create table.");
 			return NULL;
 		}
 		log_error(LOG_LEVEL_INFO,"Created http_access_data table.");
@@ -151,17 +151,17 @@ PGconn* get_pg_conn()
 int create_db_pg()
 {
 
-    PGconn *conn;
-    PGresult *res;
+	PGconn *conn;
+	PGresult *res;
 	char comm[SBUF];
 
 	sprintf(comm,"host=localhost port=5432 user=%s password=%s",db_user,db_pass);
 
-    conn = PQconnectdb(comm);
-    if(PQstatus(conn) != CONNECTION_OK) return 0;
+	conn = PQconnectdb(comm);
+	if(PQstatus(conn) != CONNECTION_OK) return 0;
 
-    res=PQexec(conn, "CREATE DATABASE myprivoxy");
-    if(PQresultStatus(res) != PGRES_COMMAND_OK ) return 0;
+	res=PQexec(conn, "CREATE DATABASE myprivoxy");
+	if(PQresultStatus(res) != PGRES_COMMAND_OK ) return 0;
 
 	PQclear(res);
 	PQfinish(conn);
@@ -172,22 +172,22 @@ int create_db_pg()
 int create_table_pg()
 {
 
-    PGconn *conn;
-    PGresult *res;
+	PGconn *conn;
+	PGresult *res;
 	char comm[SBUF];
 
 	sprintf(comm,"host=localhost port=5432 user=%s password=%s dbname=myprivoxy",db_user,db_pass);
 
-    conn = PQconnectdb(comm);
-    if(PQstatus(conn) != CONNECTION_OK) return 0;
+	conn = PQconnectdb(comm);
+	if(PQstatus(conn) != CONNECTION_OK) return 0;
 
 	// Load hstore extension
-    res=PQexec(conn, "CREATE EXTENSION hstore");
-    if(PQresultStatus(res) != PGRES_COMMAND_OK) return 0;
+	res=PQexec(conn, "CREATE EXTENSION hstore");
+	if(PQresultStatus(res) != PGRES_COMMAND_OK) return 0;
 	
-    res=PQexec(conn, "CREATE TABLE http_access_data "
-                     "(unixtime INT, src_mac TEXT, src_ip TEXT, url TEXT, words TEXT, words_hstore HSTORE, size INT)");
-    if(PQresultStatus(res) != PGRES_COMMAND_OK) return 0;
+	res=PQexec(conn, "CREATE TABLE http_access_data "
+					 "(unixtime INT, src_mac TEXT, src_ip TEXT, url TEXT, words TEXT, words_hstore HSTORE, size INT)");
+	if(PQresultStatus(res) != PGRES_COMMAND_OK) return 0;
 	
 	PQclear(res);
 	PQfinish(conn);
