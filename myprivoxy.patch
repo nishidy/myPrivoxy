@@ -1,0 +1,269 @@
+diff -urbB privoxy-3.0.21-stable/config myprivoxy-3.0.21/config
+--- privoxy-3.0.21-stable/config	2013-03-07 23:11:51.000000000 +0900
++++ myprivoxy-3.0.21/config	2014-10-17 23:09:11.941107677 +0900
+@@ -2072,3 +2072,50 @@
+ #
+ #
+ #
++#  8. DATABASE OPTIONS
++#  =======================
++#
++#register-database 1
++#
++# The avaiable databases are:
++#
++#    database mysql 
++#    database postgresql
++#    database mongodb
++#    database redis
++#    database memcached
++#
++#database mysql
++#
++#database-user root
++#
++#database-password password
++#
++#
++#  9. BAG-OF-WORDS OPTIONS
++#  =======================
++#
++# To make bag-of-word from http content, set to 1
++# (Specifically for text mining)
++#
++#bag-of-words 1
++#
++#
++# To ignore case, set to 1
++#
++#bow-ignore-case 1
++#
++#
++# The minimum number of frequency you want to count
++# as part of bag-of-words
++# The default value is 1, if not set
++#
++#bow-min-freq-as-word 2
++#
++#
++# The minimum length of word you want to count as
++# part of bag-of-words.
++#
++#bow-min-word-len 2
++#
++#
+diff -urbB privoxy-3.0.21-stable/filters.c myprivoxy-3.0.21/filters.c
+--- privoxy-3.0.21-stable/filters.c	2012-12-07 21:45:20.000000000 +0900
++++ myprivoxy-3.0.21/filters.c	2014-10-17 23:00:00.793888042 +0900
+@@ -69,6 +69,7 @@
+ #include "deanimate.h"
+ #include "urlmatch.h"
+ #include "loaders.h"
++#include "my.h"
+ 
+ #ifdef _WIN32
+ #include "win32.h"
+@@ -168,9 +169,9 @@
+                           const struct sockaddr_storage *netmask,
+                           const struct sockaddr_storage *address)
+ {
+-   uint8_t *network_addr, *netmask_addr, *address_addr;
+-   unsigned int addr_len;
+-   in_port_t *network_port, *netmask_port, *address_port;
++   uint8_t *network_addr=0, *netmask_addr=0, *address_addr=0;
++   unsigned int addr_len=0;
++   in_port_t *network_port=0, *netmask_port=0, *address_port=0;
+    int i;
+ 
+    if (network->ss_family != netmask->ss_family)
+@@ -1692,6 +1693,11 @@
+ 
+    csp->flags |= CSP_FLAG_MODIFIED;
+    csp->content_length = size;
++
++   if(csp->config->register_database==1){
++       my_http_content_reg(csp);
++   }
++
+    clear_iob(csp->iob);
+ 
+    return(new);
+diff -urbB privoxy-3.0.21-stable/GNUmakefile.in myprivoxy-3.0.21/GNUmakefile.in
+--- privoxy-3.0.21-stable/GNUmakefile.in	2013-02-05 23:04:11.000000000 +0900
++++ myprivoxy-3.0.21/GNUmakefile.in	2014-10-17 23:02:53.877064594 +0900
+@@ -188,7 +188,7 @@
+ C_SRC  = actions.c cgi.c cgiedit.c cgisimple.c deanimate.c encode.c \
+          errlog.c filters.c gateway.c jbsockets.c jcc.c \
+          list.c loadcfg.c loaders.c miscutil.c parsers.c ssplit.c \
+-         urlmatch.c
++         urlmatch.c my_comm.c my_mysql.c my_pgsql.c my_mongodb.c my_redis.c
+ 
+ C_OBJS = $(C_SRC:.c=.@OBJEXT@)
+ C_HDRS = $(C_SRC:.c=.h) project.h actionlist.h
+@@ -269,6 +269,12 @@
+ #############################################################################
+ # Define this explicitly because Solaris is broken!
+ #############################################################################
++my_redis.o: my_redis.c
++	$(CC) -c $(CFLAGS) $(CPPFLAGS) -I/usr/include/hiredis $< -o $@
++
++my_mongodb.o: my_mongodb.c
++	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(MONGOFLAGS) $< -o $@
++
+ %.o: %.c
+ 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+ 
+@@ -737,9 +743,10 @@
+ @AMIGAOS_ONLY@endif
+ @AMIGAOS_ONLY@amiga.o: amiga.c amiga.h config.h
+ 
++MONGOFLAGS = `export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig; pkg-config --cflags --libs libmongoc-1.0`
+ 
+ $(PROGRAM): $(OBJS) $(W32_FILES)
+-	$(LD) $(LDFLAGS) -o $(PROGRAM) $(OBJS) $(LIBS)
++	$(LD) $(LDFLAGS) -o $(PROGRAM) $(OBJS) $(LIBS) -lm -L/usr/lib64/mysql -lmysqlclient -ljansson -lhiredis -lpq $(MONGOFLAGS)
+ 
+ clean:
+ 	$(RM) a.out $(OBJS) $(W32_FILES) $(W32_INIS) $(PROGRAM) default.action \
+diff -urbB privoxy-3.0.21-stable/jcc.c myprivoxy-3.0.21/jcc.c
+--- privoxy-3.0.21-stable/jcc.c	2013-03-02 02:38:34.000000000 +0900
++++ myprivoxy-3.0.21/jcc.c	2014-10-09 23:46:52.022876165 +0900
+@@ -44,6 +44,7 @@
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <assert.h>
++#include "my.h"
+ 
+ #ifdef _WIN32
+ # ifndef FEATURE_PTHREAD
+diff -urbB privoxy-3.0.21-stable/loadcfg.c myprivoxy-3.0.21/loadcfg.c
+--- privoxy-3.0.21-stable/loadcfg.c	2013-03-07 23:08:49.000000000 +0900
++++ myprivoxy-3.0.21/loadcfg.c	2014-10-17 23:18:42.347102239 +0900
+@@ -172,6 +172,15 @@
+ #define hash_log_max_lines               2868344173U /* "log-max-lines" */
+ #define hash_log_messages                2291744899U /* "log-messages" */
+ #define hash_show_on_task_bar             215410365U /* "show-on-task-bar" */
++#define hash_bag_of_words                1666702544U /* "bag-of-words" */
++#define hash_bow_ignore_case             1668743038U /* "bow-ignore-case" */
++#define hash_bow_min_freq_as_word        2583247734U /* "bow-min-freq-as-word" */
++#define hash_bow_min_word_len            4238566954U /* "bow-min-word-len" */
++#define hash_register_database            429373059U /* "register-database" */
++#define hash_database                       9766601U /* "database" */
++#define hash_database_user                455903297U /* "database-user" */
++#define hash_database_password           1471109909U /* "database-password" */
++
+ 
+ 
+ static void savearg(char *command, char *argument, struct configuration_spec * config);
+@@ -468,6 +477,15 @@
+    config->usermanual                = strdup(USER_MANUAL_URL);
+    config->proxy_args                = strdup("");
+    config->forwarded_connect_retries = 0;
++   config->bag_of_words              = 0;
++   config->bow_ignore_case           = 0;
++   config->bow_min_freq_as_word      = 0;
++   config->bow_min_word_len          = 0;
++   config->register_database         = 0;
++   config->database                  = DATABASE_MYSQL;
++   config->database_user             = strdup("root");
++   config->database_password         = strdup("");
++
+    /*
+     * 128 client sockets ought to be enough for everybody who can't
+     * be bothered to read the documentation to figure out how to
+@@ -1553,6 +1571,50 @@
+             /* log_error(LOG_LEVEL_INFO, "Unsupported directive \"%s\" ignored.", cmd); */
+             break;
+ 
++         case hash_bag_of_words :
++            config->bag_of_words = atoi(arg);
++            break;
++
++         case hash_bow_ignore_case :
++            config->bow_ignore_case = atoi(arg);
++            break;
++
++         case hash_bow_min_freq_as_word:
++            config->bow_min_freq_as_word = atoi(arg);
++            break;
++
++         case hash_bow_min_word_len:
++            config->bow_min_word_len = atoi(arg);
++            break;
++
++
++         case hash_register_database:
++            config->register_database = atoi(arg);
++            break;
++
++         case hash_database:
++            if(strcmp(arg,"mysql")==0){
++                config->database = DATABASE_MYSQL;
++            }else if(strcmp(arg,"postgresql")==0){
++                config->database = DATABASE_POSTGRESQL;
++            }else if(strcmp(arg,"mongodb")==0){
++                config->database = DATABASE_MONGODB;
++            }else if(strcmp(arg,"redis")==0){
++                config->database = DATABASE_REDIS;
++            }else if(strcmp(arg,"memcached")==0){
++                config->database = DATABASE_MEMCACHED;
++            }
++
++            break;
++
++         case hash_database_user:
++            config->database_user = strdup(arg);
++            break;
++
++         case hash_database_password:
++            config->database_password = strdup(arg);
++            break;
++
+ /* *************************************************************************/
+          default :
+ /* *************************************************************************/
+Only in myprivoxy-3.0.21/: my_comm.c
+Only in myprivoxy-3.0.21/: my.h
+Only in myprivoxy-3.0.21/: my_mongodb.c
+Only in myprivoxy-3.0.21/: my_mysql.c
+Only in myprivoxy-3.0.21/: my_pgsql.c
+Only in myprivoxy-3.0.21/: my_redis.c
+diff -urbB privoxy-3.0.21-stable/project.h myprivoxy-3.0.21/project.h
+--- privoxy-3.0.21-stable/project.h	2013-03-07 23:08:50.000000000 +0900
++++ myprivoxy-3.0.21/project.h	2014-10-17 22:59:38.961731145 +0900
+@@ -1223,6 +1223,12 @@
+ /** configuration_spec::feature_flags: Proxy authentication headers are forwarded instead of removed. */
+ #define RUNTIME_FEATURE_FORWARD_PROXY_AUTHENTICATION_HEADERS      4096U
+ 
++#define DATABASE_MYSQL       1
++#define DATABASE_POSTGRESQL  2
++#define DATABASE_MONGODB     3
++#define DATABASE_REDIS       4
++#define DATABASE_MEMCACHED   5
++
+ /**
+  * Data loaded from the configuration file.
+  *
+@@ -1356,6 +1362,22 @@
+ 
+    /** Nonzero if we need to bind() to the new port. */
+    int need_bind;
++
++
++   /** Make bag-of-words from http content if needed */
++   int bag_of_words;
++
++   /** See config... */
++   int bow_ignore_case;
++   int bow_min_freq_as_word;
++   int bow_min_word_len;
++
++   int register_database;
++
++   int database;
++   char *database_user;
++   char *database_password;
++
+ };
+ 
+ /** Calculates the number of elements in an array, using sizeof. */
