@@ -18,4 +18,8 @@ void reg_postgresql(char* src_ip, char* src_mac, char* url, char* words, int siz
 
 extern int global_pg_prepared;
 
+extern char* db_user;
+extern char* db_pass;
+extern int bag_of_words;
+
 

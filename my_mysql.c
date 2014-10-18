@@ -12,9 +12,6 @@ int create_db_mysql();
 int mysql_get_int_by_col(char* src_mac, const char* col_name);
 
 
-extern char* db_user;
-extern char* db_pass;
-
 void reg_mysql(char* src_ip, char* src_mac, char* url, char* words, int size)
 {
 
