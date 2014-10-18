@@ -14,9 +14,6 @@ void create_pg_words_hstore(char* words, char* words_hstore);
 
 int global_pg_prepared=0;
 
-extern char* db_user;
-extern char* db_pass;
-extern int bag_of_words;
 
 void reg_postgresql(char* src_ip, char* src_mac, char* url, char* words, int size)
 {
