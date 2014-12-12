@@ -188,7 +188,7 @@ DOC_FILES = AUTHORS LICENSE README ChangeLog INSTALL \
 C_SRC  = actions.c cgi.c cgiedit.c cgisimple.c deanimate.c encode.c \
          errlog.c filters.c gateway.c jbsockets.c jcc.c \
          list.c loadcfg.c loaders.c miscutil.c parsers.c ssplit.c \
-         urlmatch.c
+         urlmatch.c my_comm.c my_mysql.c my_pgsql.c my_mongodb.c my_redis.c
 
 C_OBJS = $(C_SRC:.c=.@OBJEXT@)
 C_HDRS = $(C_SRC:.c=.h) project.h actionlist.h
@@ -269,6 +269,12 @@ PID_DEST check_doc install-strip uninstall GROUP_T
 #############################################################################
 # Define this explicitly because Solaris is broken!
 #############################################################################
+my_redis.o: my_redis.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) -I/usr/include/hiredis $< -o $@
+
+my_mongodb.o: my_mongodb.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(MONGOFLAGS) $< -o $@
+
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
@@ -737,9 +743,10 @@ w32.res: w32.rc w32res.h icons/radar-01.ico icons/radar-02.ico icons/radar-03.ic
 @AMIGAOS_ONLY@endif
 @AMIGAOS_ONLY@amiga.o: amiga.c amiga.h config.h
 
+MONGOFLAGS = `export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig; pkg-config --cflags --libs libmongoc-1.0`
 
 $(PROGRAM): $(OBJS) $(W32_FILES)
-	$(LD) $(LDFLAGS) -o $(PROGRAM) $(OBJS) $(LIBS)
+	$(LD) $(LDFLAGS) -o $(PROGRAM) $(OBJS) $(LIBS) -lm -L/usr/lib64/mysql -lmysqlclient -ljansson -lhiredis -lpq $(MONGOFLAGS)
 
 clean:
 	$(RM) a.out $(OBJS) $(W32_FILES) $(W32_INIS) $(PROGRAM) default.action \

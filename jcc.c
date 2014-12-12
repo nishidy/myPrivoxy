@@ -44,6 +44,7 @@ const char jcc_rcs[] = "$Id: jcc.c,v 1.424 2013/03/01 17:38:34 fabiankeil Exp $"
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
+#include "my.h"
 
 #ifdef _WIN32
 # ifndef FEATURE_PTHREAD

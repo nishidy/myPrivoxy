@@ -2072,3 +2072,50 @@ socket-timeout 300
 #
 #
 #
+#  8. DATABASE OPTIONS
+#  =======================
+#
+#register-database 1
+#
+# The avaiable databases are:
+#
+#    database mysql 
+#    database postgresql
+#    database mongodb
+#    database redis
+#    database memcached
+#
+#database mysql
+#
+#database-user root
+#
+#database-password password
+#
+#
+#  9. BAG-OF-WORDS OPTIONS
+#  =======================
+#
+# To make bag-of-word from http content, set to 1
+# (Specifically for text mining)
+#
+#bag-of-words 1
+#
+#
+# To ignore case, set to 1
+#
+#bow-ignore-case 1
+#
+#
+# The minimum number of frequency you want to count
+# as part of bag-of-words
+# The default value is 1, if not set
+#
+#bow-min-freq-as-word 2
+#
+#
+# The minimum length of word you want to count as
+# part of bag-of-words.
+#
+#bow-min-word-len 2
+#
+#

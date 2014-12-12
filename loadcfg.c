@@ -172,6 +172,15 @@ static struct file_list *current_configfile = NULL;
 #define hash_log_max_lines               2868344173U /* "log-max-lines" */
 #define hash_log_messages                2291744899U /* "log-messages" */
 #define hash_show_on_task_bar             215410365U /* "show-on-task-bar" */
+#define hash_bag_of_words                1666702544U /* "bag-of-words" */
+#define hash_bow_ignore_case             1668743038U /* "bow-ignore-case" */
+#define hash_bow_min_freq_as_word        2583247734U /* "bow-min-freq-as-word" */
+#define hash_bow_min_word_len            4238566954U /* "bow-min-word-len" */
+#define hash_register_database            429373059U /* "register-database" */
+#define hash_database                       9766601U /* "database" */
+#define hash_database_user                455903297U /* "database-user" */
+#define hash_database_password           1471109909U /* "database-password" */
+
 
 
 static void savearg(char *command, char *argument, struct configuration_spec * config);
@@ -468,6 +477,15 @@ struct configuration_spec * load_config(void)
    config->usermanual                = strdup(USER_MANUAL_URL);
    config->proxy_args                = strdup("");
    config->forwarded_connect_retries = 0;
+   config->bag_of_words              = 0;
+   config->bow_ignore_case           = 0;
+   config->bow_min_freq_as_word      = 0;
+   config->bow_min_word_len          = 0;
+   config->register_database         = 0;
+   config->database                  = DATABASE_MYSQL;
+   config->database_user             = strdup("root");
+   config->database_password         = strdup("");
+
    /*
     * 128 client sockets ought to be enough for everybody who can't
     * be bothered to read the documentation to figure out how to
@@ -1551,6 +1569,50 @@ struct configuration_spec * load_config(void)
 #endif /* defined(_WIN_CONSOLE) || ! defined(_WIN32) */
             /* These warnings are annoying - so hide them. -- Jon */
             /* log_error(LOG_LEVEL_INFO, "Unsupported directive \"%s\" ignored.", cmd); */
+            break;
+
+         case hash_bag_of_words :
+            config->bag_of_words = atoi(arg);
+            break;
+
+         case hash_bow_ignore_case :
+            config->bow_ignore_case = atoi(arg);
+            break;
+
+         case hash_bow_min_freq_as_word:
+            config->bow_min_freq_as_word = atoi(arg);
+            break;
+
+         case hash_bow_min_word_len:
+            config->bow_min_word_len = atoi(arg);
+            break;
+
+
+         case hash_register_database:
+            config->register_database = atoi(arg);
+            break;
+
+         case hash_database:
+            if(strcmp(arg,"mysql")==0){
+                config->database = DATABASE_MYSQL;
+            }else if(strcmp(arg,"postgresql")==0){
+                config->database = DATABASE_POSTGRESQL;
+            }else if(strcmp(arg,"mongodb")==0){
+                config->database = DATABASE_MONGODB;
+            }else if(strcmp(arg,"redis")==0){
+                config->database = DATABASE_REDIS;
+            }else if(strcmp(arg,"memcached")==0){
+                config->database = DATABASE_MEMCACHED;
+            }
+
+            break;
+
+         case hash_database_user:
+            config->database_user = strdup(arg);
+            break;
+
+         case hash_database_password:
+            config->database_password = strdup(arg);
             break;
 
 /* *************************************************************************/

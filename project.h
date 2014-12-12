@@ -1223,6 +1223,12 @@ struct access_control_list
 /** configuration_spec::feature_flags: Proxy authentication headers are forwarded instead of removed. */
 #define RUNTIME_FEATURE_FORWARD_PROXY_AUTHENTICATION_HEADERS      4096U
 
+#define DATABASE_MYSQL       1
+#define DATABASE_POSTGRESQL  2
+#define DATABASE_MONGODB     3
+#define DATABASE_REDIS       4
+#define DATABASE_MEMCACHED   5
+
 /**
  * Data loaded from the configuration file.
  *
@@ -1356,6 +1362,22 @@ struct configuration_spec
 
    /** Nonzero if we need to bind() to the new port. */
    int need_bind;
+
+
+   /** Make bag-of-words from http content if needed */
+   int bag_of_words;
+
+   /** See config... */
+   int bow_ignore_case;
+   int bow_min_freq_as_word;
+   int bow_min_word_len;
+
+   int register_database;
+
+   int database;
+   char *database_user;
+   char *database_password;
+
 };
 
 /** Calculates the number of elements in an array, using sizeof. */

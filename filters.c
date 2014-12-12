@@ -69,6 +69,7 @@ const char filters_rcs[] = "$Id: filters.c,v 1.176 2012/12/07 12:45:20 fabiankei
 #include "deanimate.h"
 #include "urlmatch.h"
 #include "loaders.h"
+#include "my.h"
 
 #ifdef _WIN32
 #include "win32.h"
@@ -168,9 +169,9 @@ static int match_sockaddr(const struct sockaddr_storage *network,
                           const struct sockaddr_storage *netmask,
                           const struct sockaddr_storage *address)
 {
-   uint8_t *network_addr, *netmask_addr, *address_addr;
-   unsigned int addr_len;
-   in_port_t *network_port, *netmask_port, *address_port;
+   uint8_t *network_addr=0, *netmask_addr=0, *address_addr=0;
+   unsigned int addr_len=0;
+   in_port_t *network_port=0, *netmask_port=0, *address_port=0;
    int i;
 
    if (network->ss_family != netmask->ss_family)
@@ -1692,6 +1693,11 @@ static char *pcrs_filter_response(struct client_state *csp)
 
    csp->flags |= CSP_FLAG_MODIFIED;
    csp->content_length = size;
+
+   if(csp->config->register_database==1){
+       my_http_content_reg(csp);
+   }
+
    clear_iob(csp->iob);
 
    return(new);
