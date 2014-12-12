@@ -384,9 +384,9 @@ void get_src_mac(char* src_ip, char* src_mac)
 	char buf[SBUF] = {'\0'};
 	char mycmdline[SBUF] = {'\0'};
 
-	sprintf(mycmdline,"/sbin/arp | grep %s | awk '{print $3}'",src_ip);	
+	sprintf(mycmdline,"/sbin/arp | grep %s | awk '{print $3}'",src_ip);
 	if((fp=popen(mycmdline,"r"))==NULL){
-		log_error(LOG_LEVEL_FATAL, "cannot get mac addr.");	
+		log_error(LOG_LEVEL_FATAL, "cannot get mac addr.");
 		return;
 	}
 

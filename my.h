@@ -7,7 +7,7 @@
 #define TEXTBUF 1000000
 #define ARRBUF  65535
 #define SBUF    256
-#define SSBUF   64 
+#define SSBUF   64
 
 void my_http_content_reg(struct client_state *csp);
 

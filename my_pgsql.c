@@ -23,8 +23,8 @@ void reg_postgresql(char* src_ip, char* src_mac, char* url, char* words, int siz
 
 	conn=get_pg_conn();
 	if(conn==NULL){
-	   log_error(LOG_LEVEL_ERROR,"Failed to get PGconn.");
-	   return;
+		log_error(LOG_LEVEL_ERROR,"Failed to get PGconn.");
+		return;
 	}
 
 	char* words_hstore = (char*)calloc(TEXTBUF,sizeof(char));
@@ -72,7 +72,7 @@ PGconn* get_pg_conn()
 
 			res=PQexec(conn, "SELECT tablename from pg_tables");
 			if(PQresultStatus(res) != PGRES_TUPLES_OK){
-   				log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_tables -> %s",
+				log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_tables -> %s",
 						  PQerrorMessage(conn));
 				return NULL;
 			}
@@ -81,7 +81,7 @@ PGconn* get_pg_conn()
 
 			for(row=0;row<res_count;++row){
 				if(strcmp(PQgetvalue(res,row,0),"http_access_data")==0){
-   					log_error(LOG_LEVEL_INFO,"Found http_access_data table.");
+					log_error(LOG_LEVEL_INFO,"Found http_access_data table.");
 					flag=1;
 					break;
 				}
@@ -100,13 +100,13 @@ PGconn* get_pg_conn()
 
 			conn = PQconnectdb(comm);
 			if(PQstatus(conn) != CONNECTION_OK){
-		   		log_error(LOG_LEVEL_ERROR,"Failed to connect to server -> %s",PQerrorMessage(conn));
+				log_error(LOG_LEVEL_ERROR,"Failed to connect to server -> %s",PQerrorMessage(conn));
 				return NULL;
 			}
 
 			res=PQexec(conn, "SELECT datname from pg_database");
 			if(PQresultStatus(res) != PGRES_TUPLES_OK){
-		   		log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_database -> %s",PQerrorMessage(conn));
+				log_error(LOG_LEVEL_ERROR,"Failed to run select for pg_database -> %s",PQerrorMessage(conn));
 				return NULL;
 			}
 
@@ -114,7 +114,7 @@ PGconn* get_pg_conn()
 
 			for(row=0;row<res_count;++row){
 				if(strcmp(PQgetvalue(res,row,0),"myprivoxy")==0){
-		   			log_error(LOG_LEVEL_INFO,"Found myprivoxy database.");
+					log_error(LOG_LEVEL_INFO,"Found myprivoxy database.");
 					flag=1;
 					break;
 				}
@@ -123,15 +123,15 @@ PGconn* get_pg_conn()
 
 			if(flag==0){
 				if(create_db_pg()==0){
-			   		log_error(LOG_LEVEL_ERROR,"Failed to create database.");
+					log_error(LOG_LEVEL_ERROR,"Failed to create database.");
 					return NULL;
 				}
-		   		log_error(LOG_LEVEL_INFO,"Created myprivoxy database.");
+				log_error(LOG_LEVEL_INFO,"Created myprivoxy database.");
 			}
 		}
 
 		if(create_table_pg()==0){
-	   		log_error(LOG_LEVEL_ERROR,"Failed to create table.");
+			log_error(LOG_LEVEL_ERROR,"Failed to create table.");
 			return NULL;
 		}
 		log_error(LOG_LEVEL_INFO,"Created http_access_data table.");
@@ -181,11 +181,11 @@ int create_table_pg()
 	// Load hstore extension
 	res=PQexec(conn, "CREATE EXTENSION hstore");
 	if(PQresultStatus(res) != PGRES_COMMAND_OK) return 0;
-	
+
 	res=PQexec(conn, "CREATE TABLE http_access_data "
 					 "(unixtime INT, src_mac TEXT, src_ip TEXT, url TEXT, words TEXT, words_hstore HSTORE, size INT)");
 	if(PQresultStatus(res) != PGRES_COMMAND_OK) return 0;
-	
+
 	PQclear(res);
 	PQfinish(conn);
 

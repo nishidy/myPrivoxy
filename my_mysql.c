@@ -148,7 +148,7 @@ MYSQL* init_conn_mysql(const char* dbname)
 
 int create_db_mysql(){
 
-	MYSQL* con=init_conn_mysql(NULL); 
+	MYSQL* con=init_conn_mysql(NULL);
 	if(con==NULL) return 1;
 
 	char* sql = (char*)calloc(SBUF,sizeof(char));
@@ -172,7 +172,7 @@ int create_db_mysql(){
 		return res;
 	}
 
-	con=init_conn_mysql("myprivoxy"); 
+	con=init_conn_mysql("myprivoxy");
 	if(con!=NULL){
 		sprintf(sql,\
 				"CREATE TABLE http_access_data "
