@@ -1227,7 +1227,8 @@ struct access_control_list
 #define DATABASE_POSTGRESQL  2
 #define DATABASE_MONGODB     3
 #define DATABASE_REDIS       4
-#define DATABASE_MEMCACHED   5
+#define DATABASE_CASSANDRA   5
+#define DATABASE_MEMCACHED   6
 
 /**
  * Data loaded from the configuration file.

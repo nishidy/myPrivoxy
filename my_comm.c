@@ -169,6 +169,15 @@ void my_http_content_reg(struct client_state *csp)
 
 			break;
 
+		case DATABASE_CASSANDRA:
+			log_error(LOG_LEVEL_INFO,"Cassandra is selected.");
+			reg_cassandra(csp->ip_addr_str,
+						   src_mac,
+						   csp->http->host,
+						   freq,
+						   csp->content_length);
+			break;
+
 		case DATABASE_MEMCACHED:
 		default:
 			log_error(LOG_LEVEL_FATAL, "No database matched.");

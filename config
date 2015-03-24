@@ -2083,6 +2083,7 @@ socket-timeout 300
 #    database postgresql
 #    database mongodb
 #    database redis
+#    database cassandra
 #    database memcached
 #
 #database mysql

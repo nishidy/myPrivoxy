@@ -15,6 +15,7 @@ void reg_mysql(char* src_ip, char* src_mac, char* url, char* words, int size);
 void reg_mongodb(char* src_ip, char* src_mac, char* url, char* words, int size);
 void reg_redis(char* src_ip, char* src_mac, char* url, char* words, int size);
 void reg_postgresql(char* src_ip, char* src_mac, char* url, char* words, int size);
+void reg_cassandra(char* src_ip, char* src_mac, char* url, char* words, int size);
 
 extern int global_pg_prepared;
 
