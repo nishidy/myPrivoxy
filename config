@@ -2084,7 +2084,6 @@ socket-timeout 300
 #    database mongodb
 #    database redis
 #    database cassandra
-#    database memcached
 #
 #database mysql
 #

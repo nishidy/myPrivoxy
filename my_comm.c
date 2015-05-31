@@ -112,7 +112,6 @@ void my_http_content_reg(struct client_state *csp)
 
 
 	// FIXME:
-	// - Implement memcached
 	// - Make strategy more efficient and nice
 	//
 	switch(csp->config->database){
@@ -178,7 +177,6 @@ void my_http_content_reg(struct client_state *csp)
 						   csp->content_length);
 			break;
 
-		case DATABASE_MEMCACHED:
 		default:
 			log_error(LOG_LEVEL_FATAL, "No database matched.");
 			return;

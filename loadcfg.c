@@ -1603,8 +1603,6 @@ struct configuration_spec * load_config(void)
                 config->database = DATABASE_REDIS;
             }else if(strcmp(arg,"cassandra")==0){
                 config->database = DATABASE_CASSANDRA;
-            }else if(strcmp(arg,"memcached")==0){
-                config->database = DATABASE_MEMCACHED;
             }
 
             break;
